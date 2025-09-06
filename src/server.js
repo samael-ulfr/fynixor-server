@@ -16,13 +16,14 @@ const app = express();
 // Connect to MongoDB
 connectDB();
 
-
 app.use(
   cors({
     origin: "http://localhost:3000", // frontend URL
     credentials: true, // allow cookies
   })
 );
+// app.js
+const noteRoutes = require("./routes/noteRoutes");
 
 app.use(cookieParser());
 app.use(express.json());
@@ -32,6 +33,7 @@ app.use("/api/v1/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // API routes
 app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/notes", noteRoutes);
 
 // Home route
 app.get("/", (req, res) => {
@@ -42,6 +44,4 @@ app.get("/", (req, res) => {
 app.use(errorHandler);
 
 const port = process.env.PORT || 3000;
-app.listen(port, () =>
-  console.log(`Server running at http://localhost:${port}`)
-);
+app.listen(port, () => console.log(`Server running at ${port}`));

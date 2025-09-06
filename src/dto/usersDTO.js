@@ -6,6 +6,7 @@ class UserDTO {
     this.lastName = user.lastName;
     this.email = user.email;
     this.createdAt = user.createdAt;
+    this.role = user.role;
   }
 }
 

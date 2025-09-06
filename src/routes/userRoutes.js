@@ -9,8 +9,11 @@ const {
   getProfile,
   forgotPassword,
   resetPassword,
+  getAllUsers, // admin only
+  deleteUser, // admin only
 } = require("../controllers/userController");
 const authMiddleware = require("../middlewares/auth");
+const authorize = require("../middlewares/authorize");
 
 /**
  * @swagger
@@ -39,10 +42,16 @@ const authMiddleware = require("../middlewares/auth");
  *           example: Doe
  *         email:
  *           type: string
+ *           format: email
  *           example: john.doe@example.com
  *         password:
  *           type: string
  *           example: Pass@123
+ *         role:
+ *           type: string
+ *           enum: [user, admin]
+ *           default: user
+ *           example: user
  *     UserLogin:
  *       type: object
  *       required:
@@ -51,6 +60,7 @@ const authMiddleware = require("../middlewares/auth");
  *       properties:
  *         email:
  *           type: string
+ *           format: email
  *           example: john.doe@example.com
  *         password:
  *           type: string
@@ -70,6 +80,9 @@ const authMiddleware = require("../middlewares/auth");
  *         email:
  *           type: string
  *           example: john.doe@example.com
+ *         role:
+ *           type: string
+ *           example: user
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -104,7 +117,7 @@ const authMiddleware = require("../middlewares/auth");
  * @swagger
  * /users/signup:
  *   post:
- *     summary: Register new user
+ *     summary: Register a new user
  *     tags: [Users]
  *     requestBody:
  *       required: true
@@ -118,10 +131,7 @@ const authMiddleware = require("../middlewares/auth");
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 user:
- *                   $ref: '#/components/schemas/UserResponse'
+ *               $ref: '#/components/schemas/UserResponse'
  *       400:
  *         description: Validation error
  *       409:
@@ -143,7 +153,7 @@ router.post("/signup", createUser);
  *             $ref: '#/components/schemas/UserLogin'
  *     responses:
  *       200:
- *         description: Successful login with JWT
+ *         description: Successful login
  *         content:
  *           application/json:
  *             schema:
@@ -188,7 +198,7 @@ router.get("/verify", verifyUser);
  * @swagger
  * /users/logout:
  *   post:
- *     summary: Logout user (client should discard token)
+ *     summary: Logout user (client should discard JWT/cookie)
  *     tags: [Users]
  *     responses:
  *       200:
@@ -210,10 +220,7 @@ router.post("/logout", logout);
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 user:
- *                   $ref: '#/components/schemas/UserResponse'
+ *               $ref: '#/components/schemas/UserResponse'
  *       401:
  *         description: Unauthorized
  */
@@ -256,5 +263,50 @@ router.post("/forgot-password", forgotPassword);
  *         description: Invalid or expired token
  */
 router.post("/reset-password", resetPassword);
+
+/**
+ * @swagger
+ * /users/admin/all:
+ *   get:
+ *     summary: Get all users (Admin only)
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of users
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/UserResponse'
+ *       403:
+ *         description: Forbidden
+ */
+router.get("/admin/all", authMiddleware, authorize("admin"), getAllUsers);
+
+/**
+ * @swagger
+ * /users/admin/{id}:
+ *   delete:
+ *     summary: Delete a user by ID (Admin only)
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: User ID
+ *     responses:
+ *       200:
+ *         description: User deleted
+ *       403:
+ *         description: Forbidden
+ */
+router.delete("/admin/:id", authMiddleware, authorize("admin"), deleteUser);
 
 module.exports = router;

@@ -30,7 +30,7 @@ exports.createUser = async (req, res) => {
     const { error, value } = signupSchema.validate(req.body);
     if (error) return res.status(400).json({ error: error.details[0].message });
 
-    const { firstName, lastName, email, password } = value;
+    const { firstName, lastName, email, password, role } = value;
 
     const existingUser = await User.findOne({ email });
     if (existingUser)
@@ -43,6 +43,7 @@ exports.createUser = async (req, res) => {
       lastName,
       email,
       password: hashedPassword,
+      role,
     });
 
     const userDto = new UserDTO(user);
@@ -64,17 +65,18 @@ exports.signIn = async (req, res) => {
     if (!user) return res.status(401).json({ error: "Invalid credentials" });
 
     const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword) return res.status(401).json({ error: "Invalid credentials" });
+    if (!validPassword)
+      return res.status(401).json({ error: "Invalid credentials" });
 
     const token = jwt.sign(
-      { id: user._id, email: user.email },
+      { id: user._id, email: user.email, role: user.role },
       process.env.JWT_SECRET || "secret123",
       { expiresIn: "1h" }
     );
 
     // Store token in HTTP-only cookie
     res.cookie("token", token, {
-      httpOnly: true,   // cannot be accessed via JS
+      httpOnly: true, // cannot be accessed via JS
       secure: process.env.NODE_ENV === "production", // only https in prod
       sameSite: "strict",
       maxAge: 60 * 60 * 1000, // 1 hour
@@ -86,7 +88,6 @@ exports.signIn = async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 };
-
 
 // --- Verify User Exists ---
 exports.verifyUser = async (req, res) => {
@@ -112,7 +113,6 @@ exports.logout = (req, res) => {
   });
   return res.status(200).json({ message: "Logout successful" });
 };
-
 
 // --- Protected Route ---
 exports.getProfile = async (req, res) => {
@@ -181,5 +181,42 @@ exports.getUsers = async (req, res, next) => {
     res.json({ users: usersDTO });
   } catch (err) {
     next(err);
+  }
+};
+// controllers/userController.js
+
+/**
+ * Get all users (Admin only)
+ */
+exports.getAllUsers = async (req, res) => {
+  try {
+    // Fetch all users but exclude the password
+    const users = await User.find().select("-password");
+    res.status(200).json(users);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+/**
+ * Delete a user by ID (Admin only)
+ */
+exports.deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if user exists
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Delete user
+    await User.findByIdAndDelete(id);
+    res.status(200).json({ message: "User deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
