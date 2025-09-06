@@ -1,25 +1,175 @@
 const User = require("../models/userModel");
 const bcrypt = require("bcrypt");
 const UserDTO = require("../dto/usersDTO");
+const Joi = require("joi");
+const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 
-// Create a new user
-exports.createUser = async (req, res, next) => {
+// Schemas
+const signupSchema = Joi.object({
+  firstName: Joi.string().trim().min(1).required(),
+  lastName: Joi.string().trim().min(1).required(),
+  email: Joi.string().email().required(),
+  password: Joi.string()
+    .min(6)
+    .pattern(/(?=.*[a-z])/)
+    .pattern(/(?=.*[A-Z])/)
+    .pattern(/(?=.*\d)/)
+    .pattern(/(?=.*[@$!%*?&])/)
+    .required(),
+});
+
+const loginSchema = Joi.object({
+  email: Joi.string().email().required(),
+  password: Joi.string().required(),
+});
+
+// --- Sign Up ---
+exports.createUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
-    if (!name || !email) {
-      return res.status(400).json({ error: "Name and email are required" });
-    }
+    const { error, value } = signupSchema.validate(req.body);
+    if (error) return res.status(400).json({ error: error.details[0].message });
+
+    const { firstName, lastName, email, password } = value;
+
     const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ error: "Email already exists" });
-    }
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-    const user = await User.create({ name, email, password: hashedPassword });
-    const userDTO = new UserDTO(user);
-    res.status(201).json({ message: "User created", user: userDTO });
+    if (existingUser)
+      return res.status(409).json({ error: "Email already registered" });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await User.create({
+      firstName,
+      lastName,
+      email,
+      password: hashedPassword,
+    });
+
+    const userDto = new UserDTO(user);
+    return res.status(201).json({ user: userDto });
   } catch (err) {
-    next(err); // pass error to error handler
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// --- Sign In ---
+// controllers/userController.js
+exports.signIn = async (req, res) => {
+  try {
+    const { error, value } = loginSchema.validate(req.body);
+    if (error) return res.status(400).json({ error: error.details[0].message });
+
+    const { email, password } = value;
+    const user = await User.findOne({ email });
+    if (!user) return res.status(401).json({ error: "Invalid credentials" });
+
+    const validPassword = await bcrypt.compare(password, user.password);
+    if (!validPassword) return res.status(401).json({ error: "Invalid credentials" });
+
+    const token = jwt.sign(
+      { id: user._id, email: user.email },
+      process.env.JWT_SECRET || "secret123",
+      { expiresIn: "1h" }
+    );
+
+    // Store token in HTTP-only cookie
+    res.cookie("token", token, {
+      httpOnly: true,   // cannot be accessed via JS
+      secure: process.env.NODE_ENV === "production", // only https in prod
+      sameSite: "strict",
+      maxAge: 60 * 60 * 1000, // 1 hour
+    });
+
+    return res.status(200).json({ message: "Login successful" });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+
+// --- Verify User Exists ---
+exports.verifyUser = async (req, res) => {
+  try {
+    const { email } = req.query;
+    if (!email)
+      return res.status(400).json({ error: "Email query param required" });
+
+    const user = await User.findOne({ email });
+    return res.status(200).json({ exists: !!user });
+  } catch {
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// --- Logout (stateless) ---
+// controllers/userController.js
+exports.logout = (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+  });
+  return res.status(200).json({ message: "Logout successful" });
+};
+
+
+// --- Protected Route ---
+exports.getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const userDto = new UserDTO(user);
+    return res.status(200).json({ user: userDto });
+  } catch {
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// --- Forgot Password ---
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const token = crypto.randomBytes(32).toString("hex");
+    user.resetPasswordToken = token;
+    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+    await user.save();
+
+    // In real app, send email. Here we just return token.
+    return res
+      .status(200)
+      .json({ message: "Password reset token generated", token });
+  } catch {
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// --- Reset Password ---
+exports.resetPassword = async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
+
+    if (!user)
+      return res.status(400).json({ error: "Invalid or expired token" });
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    return res.status(200).json({ message: "Password reset successful" });
+  } catch {
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -27,8 +177,8 @@ exports.createUser = async (req, res, next) => {
 exports.getUsers = async (req, res, next) => {
   try {
     const users = await User.find();
-     const usersDTO = users.map(user => new UserDTO(user));
-     res.json({ users: usersDTO });
+    const usersDTO = users.map((user) => new UserDTO(user));
+    res.json({ users: usersDTO });
   } catch (err) {
     next(err);
   }

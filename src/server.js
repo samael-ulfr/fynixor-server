@@ -5,6 +5,8 @@ const connectDB = require("./config/db");
 const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./config/swagger");
 const errorHandler = require("./middlewares/errorHandler");
+// app.js
+const cookieParser = require("cookie-parser");
 
 // Routes
 const userRoutes = require("./routes/userRoutes");
@@ -14,8 +16,15 @@ const app = express();
 // Connect to MongoDB
 connectDB();
 
-// Middleware
-app.use(cors());
+
+app.use(
+  cors({
+    origin: "http://localhost:3000", // frontend URL
+    credentials: true, // allow cookies
+  })
+);
+
+app.use(cookieParser());
 app.use(express.json());
 
 // Swagger docs

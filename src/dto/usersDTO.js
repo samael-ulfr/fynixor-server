@@ -1,12 +1,11 @@
-// dto/userDTO.js
+// dto/userDto.js
 class UserDTO {
-  constructor({ _id, name, email, createdAt, updatedAt }) {
-    this.id = _id;
-    this.name = name;
-    this.email = email;
-    this.createdAt = createdAt;
-    this.updatedAt = updatedAt;
-    // Exclude password
+  constructor(user) {
+    this.id = user._id;
+    this.firstName = user.firstName;
+    this.lastName = user.lastName;
+    this.email = user.email;
+    this.createdAt = user.createdAt;
   }
 }
 
