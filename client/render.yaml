@@ -1,0 +1,18 @@
+# render.yaml - Render static site configuration for Vite SPA
+
+services:
+  - type: static
+    name: fynixor-client # Change to your site name
+    repo: https://github.com/samael-ulfr/fynixor-client
+    branch: main # Replace if using another branch
+    buildCommand: npm install && npm run build
+    publishCommand: dist
+    env:
+      - key: NODE_ENV
+        value: production
+
+redirects:
+  # Rewrite all frontend routes to index.html for SPA routing
+  - from: /<*>
+    to: /index.html
+    status: 200

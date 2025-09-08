@@ -5,6 +5,7 @@ const connectDB = require("./config/db");
 const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./config/swagger");
 const errorHandler = require("./middlewares/errorHandler");
+const path = require("path");
 // app.js
 const cookieParser = require("cookie-parser");
 
@@ -18,6 +19,7 @@ connectDB();
 const allowedOrigins = [
   "http://localhost:5173",
   "https://fynixor-client.onrender.com",
+  "http://localhost:3000",
 ];
 
 app.use(
@@ -50,12 +52,19 @@ app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/notes", noteRoutes);
 
 // Home route
-app.get("/", (req, res) => {
-  res.json({ message: process.env.GREETING });
-});
+// app.get("/", (req, res) => {
+//   res.json({ message: process.env.GREETING });
+// });
 
 // Error handler
 app.use(errorHandler);
+
+app.use(express.static(path.join(__dirname, "../client/dist")));
+
+// Catch-all route
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../client/dist", "index.html"));
+});
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Server running at ${port}`));
