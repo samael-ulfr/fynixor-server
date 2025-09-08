@@ -17,7 +17,7 @@ const app = express();
 connectDB();
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://fynixor-client.onrender.com/",
+  "https://fynixor-client.onrender.com",
 ];
 
 app.use(
