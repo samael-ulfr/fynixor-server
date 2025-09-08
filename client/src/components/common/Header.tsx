@@ -2,11 +2,13 @@ import { useNavigate } from 'react-router-dom';
 import PrimaryBtn from '@/shared/PrimaryBtn';
 import { handleSignOutApi } from '@/services/authService';
 import toast from 'react-hot-toast';
+import { useState } from 'react';
 
 export default function Header() {
   const navigate = useNavigate();
-
+  const [loading, setLoading] = useState(false);
   const handleLogout = async () => {
+    setLoading(true);
     try {
       // Call your logout API
       await handleSignOutApi();
@@ -26,6 +28,8 @@ export default function Header() {
       console.error('Logout failed:', error);
       // Optional: show a toast notification
       // toast.error("Something went wrong during logout");
+    } finally {
+      setLoading(false);
     }
   };
 

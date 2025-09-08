@@ -1,3 +1,4 @@
+import Loader from '@/components/common/Loader';
 import { getProfileDetailsApi } from '@/services/profileServices';
 import React, { useEffect, useState } from 'react';
 
@@ -18,12 +19,16 @@ function Profile() {
     createdAt: '',
     role: '',
   });
+  const [loading, setLoading] = useState(false);
   const fetchProfileDetails = async () => {
+    setLoading(true);
     try {
       const profileDetails = await getProfileDetailsApi();
       setUserProfile(profileDetails.user);
     } catch (error) {
       console.error('Error fetching profile details:', error);
+    } finally {
+      setLoading(false);
     }
   };
   useEffect(() => {
@@ -39,6 +44,7 @@ function Profile() {
   });
   return (
     <div className="mx-auto max-w-sm overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
+      {loading && <Loader />}
       <div className="flex flex-col items-center p-6">
         {/* Avatar */}
         <div className="flex h-24 w-24 items-center justify-center rounded-full bg-secondary text-3xl font-bold text-gray-600 dark:bg-gray-700 dark:text-gray-300">
