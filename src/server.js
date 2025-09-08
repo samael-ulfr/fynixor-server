@@ -20,6 +20,7 @@ const allowedOrigins = [
   "http://localhost:5173",
   "https://fynixor-client.onrender.com",
   "http://localhost:3000",
+  "https://fynixor-server.onrender.com/",
 ];
 
 app.use(
