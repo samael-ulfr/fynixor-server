@@ -1,4 +1,9 @@
-import { handleSignInApi, handleSignUpApi } from '@/services/authService';
+import {
+  handleForgotPasswordApi,
+  handleResetPasswordApi,
+  handleSignInApi,
+  handleSignUpApi,
+} from '@/services/authService';
 import { SignInErrorsTypes, SignUpPayloadTypes } from '@/types/AuthTypes';
 import { signInSchema } from '@/utils/schemas/signInSchema';
 import Cookies from 'js-cookie';
@@ -109,10 +114,102 @@ function useAuth() {
       }
     }
   }
+
+  async function handleForgotPassword(
+    email: string,
+    setErrors: React.Dispatch<React.SetStateAction<SignInErrorsTypes>>,
+    setToken: React.Dispatch<React.SetStateAction<string>>,
+  ) {
+    console.log('handleForgotPassword called with email:', email);
+
+    setErrors({ username: '', password: '' });
+
+    toast.loading('Loading...', { id: 'forgotPass' });
+    try {
+      const getResetPasswordToken = await handleForgotPasswordApi({ email });
+      console.log('getResetPasswordToken', getResetPasswordToken);
+      toast.success(getResetPasswordToken?.message, { id: 'forgotPass' });
+      setToken(getResetPasswordToken?.token || '');
+    } catch (err) {
+      console.error('Login error:', err);
+      if (
+        err &&
+        typeof err === 'object' &&
+        'response' in err &&
+        err.response &&
+        typeof err.response === 'object' &&
+        'data' in err.response &&
+        err.response.data &&
+        typeof err.response.data === 'object' &&
+        'error' in err.response.data
+      ) {
+        toast.error(
+          (err as { response: { data: { error: string } } }).response.data
+            .error,
+          { id: 'login' },
+        );
+      } else {
+        toast.error('An unexpected error occurred.', { id: 'forgotPass' });
+      }
+    }
+  }
+
+  async function handleResetPassword({
+    password,
+    setErrors,
+    token,
+    handleToggleAuthForm,
+  }: {
+    password: string;
+    setErrors: React.Dispatch<React.SetStateAction<SignInErrorsTypes>>;
+    token: string;
+    handleToggleAuthForm: (state: string) => void;
+  }) {
+    setErrors({ username: '', password: '' });
+
+    toast.loading('Loading...', { id: 'resetPass' });
+    try {
+      const getResetPasswordMsg = await handleResetPasswordApi({
+        password,
+        token,
+      });
+      console.log('getResetPasswordMsg', getResetPasswordMsg);
+      toast.success(
+        getResetPasswordMsg?.message + '.  Please login with new password',
+        {
+          id: 'resetPass',
+        },
+      );
+      handleToggleAuthForm('login');
+    } catch (err) {
+      console.error('Login error:', err);
+      if (
+        err &&
+        typeof err === 'object' &&
+        'response' in err &&
+        err.response &&
+        typeof err.response === 'object' &&
+        'data' in err.response &&
+        err.response.data &&
+        typeof err.response.data === 'object' &&
+        'error' in err.response.data
+      ) {
+        toast.error(
+          (err as { response: { data: { error: string } } }).response.data
+            .error,
+          { id: 'login' },
+        );
+      } else {
+        toast.error('An unexpected error occurred.', { id: 'resetPass' });
+      }
+    }
+  }
   return {
     handleSignIn,
     isUserAuthenticated,
     handleSignUp,
+    handleForgotPassword,
+    handleResetPassword,
   };
 }
 

@@ -130,6 +130,18 @@ export default function SignInCard({ handleToggleAuthForm }: SignInCardProps) {
               Sign Up
             </button>
           </p>
+        </div>{' '}
+        <div className="mt-4 text-center">
+          <p className="text-sm text-gray-600">
+            Having trouble signing in?{' '}
+            <button
+              type="button"
+              className="font-medium text-primary hover:underline"
+              onClick={() => handleToggleAuthForm('forgotPassword')}
+            >
+              Forgot Password
+            </button>
+          </p>
         </div>
       </div>
     </div>

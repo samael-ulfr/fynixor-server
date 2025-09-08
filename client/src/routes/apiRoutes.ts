@@ -6,6 +6,8 @@ const APIRoutes = {
     signUpRoute: `${baseUrl}users/signup`,
     signOutRoute: `${baseUrl}users/logout`,
     getProfileRoute: `${baseUrl}users/profile`,
+    forgotPasswordRoute: `${baseUrl}users/forgot-password`,
+    resetPasswordRoute: `${baseUrl}users/reset-password`,
   },
 };
 

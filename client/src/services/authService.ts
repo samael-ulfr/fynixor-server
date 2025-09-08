@@ -42,3 +42,40 @@ export async function handleSignOutApi() {
     throw error;
   }
 }
+
+export async function handleForgotPasswordApi({ email }: { email: string }) {
+  try {
+    const response = await baseAPI.post(
+      APIRoutes.userRoutes.forgotPasswordRoute,
+      {
+        email,
+      },
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error during sign-in API call:', error);
+    throw error;
+  }
+}
+
+export async function handleResetPasswordApi({
+  password,
+  token,
+}: {
+  token: string;
+  password: string;
+}) {
+  try {
+    const response = await baseAPI.post(
+      APIRoutes.userRoutes.resetPasswordRoute,
+      {
+        newPassword: password,
+        token,
+      },
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error during sign-in API call:', error);
+    throw error;
+  }
+}
