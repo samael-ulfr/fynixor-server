@@ -57,17 +57,27 @@ exports.createUser = async (req, res) => {
 // controllers/userController.js
 exports.signIn = async (req, res) => {
   try {
+    // Validate request body
     const { error, value } = loginSchema.validate(req.body);
-    if (error) return res.status(400).json({ error: error.details[0].message });
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+    }
 
     const { email, password } = value;
+
+    // Check if user exists
     const user = await User.findOne({ email });
-    if (!user) return res.status(401).json({ error: "Invalid credentials" });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
 
+    // Check if password is correct
     const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword)
-      return res.status(401).json({ error: "Invalid credentials" });
+    if (!validPassword) {
+      return res.status(401).json({ error: "Incorrect password" });
+    }
 
+    // Generate JWT token
     const token = jwt.sign(
       { id: user._id, email: user.email, role: user.role },
       process.env.JWT_SECRET || "secret123",
@@ -76,13 +86,13 @@ exports.signIn = async (req, res) => {
 
     // Store token in HTTP-only cookie
     res.cookie("token", token, {
-      httpOnly: true, // cannot be accessed via JS
-      secure: process.env.NODE_ENV === "production", // only https in prod
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
       maxAge: 60 * 60 * 1000, // 1 hour
     });
 
-    return res.status(200).json({ message: "Login successful" });
+    return res.status(200).json({ token, message: "Login successful" });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Internal server error" });

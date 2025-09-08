@@ -46,7 +46,7 @@ const authorize = require("../middlewares/authorize");
  *           example: john.doe@example.com
  *         password:
  *           type: string
- *           example: Pass@123
+ *           example: NewPass@1233
  *         role:
  *           type: string
  *           enum: [user, admin]
