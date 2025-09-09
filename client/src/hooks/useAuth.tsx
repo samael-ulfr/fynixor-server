@@ -120,14 +120,14 @@ function useAuth() {
     setErrors: React.Dispatch<React.SetStateAction<SignInErrorsTypes>>,
     setToken: React.Dispatch<React.SetStateAction<string>>,
   ) {
-    console.log('handleForgotPassword called with email:', email);
+
 
     setErrors({ username: '', password: '' });
 
     toast.loading('Loading...', { id: 'forgotPass' });
     try {
       const getResetPasswordToken = await handleForgotPasswordApi({ email });
-      console.log('getResetPasswordToken', getResetPasswordToken);
+     
       toast.success(getResetPasswordToken?.message, { id: 'forgotPass' });
       setToken(getResetPasswordToken?.token || '');
     } catch (err) {
@@ -173,7 +173,7 @@ function useAuth() {
         password,
         token,
       });
-      console.log('getResetPasswordMsg', getResetPasswordMsg);
+
       toast.success(
         getResetPasswordMsg?.message + '.  Please login with new password',
         {

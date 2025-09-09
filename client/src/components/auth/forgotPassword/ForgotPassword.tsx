@@ -28,7 +28,7 @@ export default function ForgotPassword({
     e.preventDefault();
     setLoading(true);
     if (token && newPassword) {
-      console.log('Resetting password to:', newPassword, 'with token:', token);
+    
       await handleResetPassword({
         password: newPassword,
         token,

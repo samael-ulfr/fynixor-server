@@ -74,7 +74,7 @@ export default function WorkoutForm() {
     },
   ]);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  console.log('errosad', errors);
+
   const addExercise = () =>
     setExercises((prev) => [
       ...prev,
@@ -153,7 +153,7 @@ export default function WorkoutForm() {
       notes,
       exercises,
     };
-    console.log('workout', workout);
+
     const { error } = workoutSchema.validate(workout, { abortEarly: false });
     const newErrors: Record<string, string> = {};
     if (error)
@@ -171,13 +171,10 @@ export default function WorkoutForm() {
   };
 
   const handleSubmit = (e: React.FormEvent) => {
-
-    console.log('Submitting', validateWorkout(), errors);
     e.preventDefault();
     if (!validateWorkout()) return;
     console.log('Workout Data:', {
       dateKey,
-
       notes,
       exercises,
     });
