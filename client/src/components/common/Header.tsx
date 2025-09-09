@@ -1,8 +1,10 @@
-import { useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import PrimaryBtn from '@/shared/PrimaryBtn';
 import { handleSignOutApi } from '@/services/authService';
 import toast from 'react-hot-toast';
 import { useState } from 'react';
+import UIRoutes from '@/routes/uiRoutes';
+import Loader from './Loader';
 
 export default function Header() {
   const navigate = useNavigate();
@@ -33,12 +35,33 @@ export default function Header() {
     }
   };
 
+  const navigationArray = [
+    { name: 'Home', href: UIRoutes.HOME },
+    { name: 'Profile', href: UIRoutes.PORFILE },
+    { name: 'Workouts', href: UIRoutes.workouts },
+  ];
   return (
     <header className="mb-2 flex w-full items-center justify-between border-b bg-white p-2 shadow-md dark:border-gray-700 dark:bg-gray-900">
       {/* Logo or App Name */}
+      {loading && <Loader />}
       <h1 className="text-xl font-bold text-gray-900 dark:text-white">
         Fynixor
       </h1>
+      <div className="hidden space-x-6 md:flex">
+        {navigationArray.map((item) => (
+          <NavLink
+            key={item.name}
+            to={item.href}
+            className={({ isActive }) =>
+              `text-sm font-medium transition ${
+                isActive ? 'text-blue-600' : 'text-gray-600 hover:text-blue-500'
+              }`
+            }
+          >
+            {item.name}
+          </NavLink>
+        ))}
+      </div>
 
       <nav className="flex items-center gap-4">
         <PrimaryBtn

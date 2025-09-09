@@ -7,7 +7,7 @@ import Header from '@/components/common/Header';
 import useAuth from '@/hooks/useAuth';
 
 interface AuthRouteProps {
-  children: ReactNode;
+  children?: ReactNode;
 }
 
 const AuthRoute = ({ children }: AuthRouteProps) => {
@@ -30,7 +30,6 @@ const AuthRoute = ({ children }: AuthRouteProps) => {
 
   return (
     <>
-      {' '}
       <Header />
       {children}
     </>
