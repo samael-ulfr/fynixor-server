@@ -6,9 +6,7 @@ const SetSchema = new mongoose.Schema(
     reps: { type: Number, default: null, required: true },
     weight: { type: Number, default: null, required: true },
     unit: { type: String, enum: ["kg", "lb"], default: "kg" },
-    durationSec: { type: Number, default: null },
-    restSec: { type: Number, default: null },
-    completed: { type: Boolean, default: false },
+    note: { type: String, default: "" },
   },
   { _id: false }
 );

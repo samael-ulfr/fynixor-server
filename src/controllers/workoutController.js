@@ -3,15 +3,28 @@ const Workout = require("../models/Workout");
 // ✅ Create workout
 exports.createWorkout = async (req, res) => {
   try {
-    const userId = req.user.id; // assuming auth middleware sets req.user
+    const userId = req.user.id; // from auth middleware
     const { dateKey, dateUTC, notes, exercises } = req.body;
+
+    // Clean exercises to ensure sets only contain allowed fields
+    const sanitizedExercises = exercises?.map((exercise) => ({
+      name: exercise.name,
+      type: exercise.type,
+      sets: exercise.sets?.map((set) => ({
+        setNumber: set.setNumber,
+        reps: set.reps,
+        weight: set.weight,
+        unit: set.unit || "kg",
+        note: set.note || "", // ✅ new field
+      })),
+    }));
 
     const workout = new Workout({
       user: userId,
       dateKey,
       dateUTC,
       notes,
-      exercises,
+      exercises: sanitizedExercises,
     });
 
     await workout.save();
@@ -50,11 +63,29 @@ exports.getWorkoutById = async (req, res) => {
 // ✅ Update workout
 exports.updateWorkout = async (req, res) => {
   try {
+    const { exercises, ...rest } = req.body;
+
+    let sanitizedExercises;
+    if (exercises) {
+      sanitizedExercises = exercises.map((exercise) => ({
+        name: exercise.name,
+        type: exercise.type,
+        sets: exercise.sets?.map((set) => ({
+          setNumber: set.setNumber,
+          reps: set.reps,
+          weight: set.weight,
+          unit: set.unit || "kg",
+          note: set.note || "",
+        })),
+      }));
+    }
+
     const workout = await Workout.findOneAndUpdate(
       { _id: req.params.id, user: req.user.id },
-      req.body,
+      { ...rest, ...(sanitizedExercises && { exercises: sanitizedExercises }) },
       { new: true, runValidators: true }
     );
+
     if (!workout) return res.status(404).json({ message: "Workout not found" });
     res.json(workout);
   } catch (err) {

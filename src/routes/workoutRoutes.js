@@ -43,6 +43,10 @@ const auth = require("../middlewares/auth");
  *                 type: array
  *                 items:
  *                   type: object
+ *                   required:
+ *                     - name
+ *                     - type
+ *                     - sets
  *                   properties:
  *                     name:
  *                       type: string
@@ -50,16 +54,32 @@ const auth = require("../middlewares/auth");
  *                     type:
  *                       type: string
  *                       enum: [strength, cardio, other]
+ *                       example: "strength"
  *                     sets:
  *                       type: array
  *                       items:
  *                         type: object
+ *                         required:
+ *                           - setNumber
+ *                           - reps
+ *                           - weight
  *                         properties:
- *                           setNumber: { type: integer, example: 1 }
- *                           reps: { type: integer, example: 5 }
- *                           weight: { type: number, example: 100 }
- *                           unit: { type: string, example: "kg" }
- *                           restSec: { type: integer, example: 120 }
+ *                           setNumber:
+ *                             type: integer
+ *                             example: 1
+ *                           reps:
+ *                             type: integer
+ *                             example: 5
+ *                           weight:
+ *                             type: number
+ *                             example: 100
+ *                           unit:
+ *                             type: string
+ *                             enum: [kg, lb]
+ *                             example: "kg"
+ *                           note:
+ *                             type: string
+ *                             example: "Felt strong, went deep"
  *     responses:
  *       201:
  *         description: Workout created successfully
@@ -129,8 +149,39 @@ router.get("/:id", auth, workoutController.getWorkoutById);
  *             properties:
  *               notes:
  *                 type: string
+ *                 example: "Tweaked form for better depth"
  *               exercises:
  *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     name:
+ *                       type: string
+ *                       example: "Deadlift"
+ *                     type:
+ *                       type: string
+ *                       enum: [strength, cardio, other]
+ *                     sets:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           setNumber:
+ *                             type: integer
+ *                             example: 2
+ *                           reps:
+ *                             type: integer
+ *                             example: 8
+ *                           weight:
+ *                             type: number
+ *                             example: 140
+ *                           unit:
+ *                             type: string
+ *                             enum: [kg, lb]
+ *                             example: "kg"
+ *                           note:
+ *                             type: string
+ *                             example: "Grip slipped, need chalk"
  *     responses:
  *       200:
  *         description: Workout updated
