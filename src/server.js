@@ -11,6 +11,8 @@ const cookieParser = require("cookie-parser");
 
 // Routes
 const userRoutes = require("./routes/userRoutes");
+const workoutRoutes = require("./routes/workoutRoutes");
+const exerciseTemplateRoutes = require("./routes/exerciseTemplateRoutes");
 
 const app = express();
 
@@ -51,6 +53,8 @@ app.use("/api/v1/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, options));
 // API routes
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/notes", noteRoutes);
+app.use("/api/v1/workouts", workoutRoutes);
+app.use("/api/v1/templates", exerciseTemplateRoutes);
 
 // Home route
 // app.get("/", (req, res) => {
