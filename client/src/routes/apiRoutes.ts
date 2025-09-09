@@ -9,6 +9,12 @@ const APIRoutes = {
     forgotPasswordRoute: `${baseUrl}users/forgot-password`,
     resetPasswordRoute: `${baseUrl}users/reset-password`,
   },
+  workoutRoutes: {
+    createWorkoutRoute: `${baseUrl}workouts`,
+    getAllWorkoutsRoute: `${baseUrl}workouts`,
+    updateWorkoutRoute: `${baseUrl}workouts`,
+    deleteWorkoutRoute: `${baseUrl}workouts`,
+  },
 };
 
 export default APIRoutes;

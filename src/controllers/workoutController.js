@@ -1,12 +1,12 @@
 const Workout = require("../models/Workout");
 
-// ✅ Create workout
+// ✅ Create or update workout
 exports.createWorkout = async (req, res) => {
   try {
     const userId = req.user.id; // from auth middleware
     const { dateKey, dateUTC, notes, exercises } = req.body;
 
-    // Clean exercises to ensure sets only contain allowed fields
+    // ✅ Clean exercises
     const sanitizedExercises = exercises?.map((exercise) => ({
       name: exercise.name,
       type: exercise.type,
@@ -15,10 +15,22 @@ exports.createWorkout = async (req, res) => {
         reps: set.reps,
         weight: set.weight,
         unit: set.unit || "kg",
-        note: set.note || "", // ✅ new field
+        note: set.note || "", // ✅ support note field
       })),
     }));
 
+    // ✅ Check if workout already exists for user & date
+    const existingWorkout = await Workout.findOne({ user: userId, dateKey });
+
+    if (existingWorkout) {
+      // 🔹 Instead of throwing raw error, send custom message
+      return res.status(409).json({
+        error: `Workout already exists for date ${dateKey}`,
+        message: "Use updateWorkout to modify an existing workout",
+      });
+    }
+
+    // ✅ Create new workout if not exists
     const workout = new Workout({
       user: userId,
       dateKey,

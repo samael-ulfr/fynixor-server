@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import Joi from 'joi';
 import { Trash2 } from 'lucide-react';
+import { handleCreateWorkoutApi } from '@/services/workoutServices';
+import useCreateWorkout from './useCreateWorkout';
+import Loader from '@/components/common/Loader';
 
 type SetType = {
   setNumber: number;
   reps: number;
   weight: number;
   unit: 'kg' | 'lbs';
-  note: string; // ✅ replaced restSec with note
+  note: string;
 };
 
 type ExerciseType = { name: string; type: string; sets: SetType[] };
@@ -59,35 +62,32 @@ const workoutSchema = Joi.object({
     .min(1)
     .messages({ 'array.min': 'At least one exercise is required' }),
 });
-
+const defaultSet: SetType[] = [
+  { setNumber: 1, reps: 15, weight: 2.5, note: '', unit: 'kg' },
+  { setNumber: 2, reps: 12, weight: 2.5, note: '', unit: 'kg' },
+  { setNumber: 3, reps: 8, weight: 2.5, note: '', unit: 'kg' },
+];
 export default function WorkoutForm() {
   const today = new Date().toISOString().split('T')[0];
   const [dateKey, setDateKey] = useState(today);
   const [notes, setNotes] = useState('');
+  const [loading, setloading] = useState(false);
   const [exercises, setExercises] = useState<ExerciseType[]>([
     {
       name: '',
       type: 'strength',
-      sets: [
-        { setNumber: 1, reps: 15, weight: 2.5, note: '', unit: 'kg' },
-        { setNumber: 2, reps: 12, weight: 2.5, note: '', unit: 'kg' },
-        { setNumber: 3, reps: 8, weight: 2.5, note: '', unit: 'kg' },
-      ],
+      sets: defaultSet,
     },
   ]);
   const [errors, setErrors] = useState<Record<string, string>>({});
-
+  const { handleCreateWorkout } = useCreateWorkout();
   const addExercise = () =>
     setExercises((prev) => [
       ...prev,
       {
         name: '',
         type: 'strength',
-        sets: [
-          { setNumber: 1, reps: 15, weight: 2.5, note: '', unit: 'kg' },
-          { setNumber: 2, reps: 12, weight: 2.5, note: '', unit: 'kg' },
-          { setNumber: 3, reps: 8, weight: 2.5, note: '', unit: 'kg' },
-        ],
+        sets: defaultSet,
       },
     ]);
 
@@ -182,15 +182,38 @@ export default function WorkoutForm() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateWorkout()) return;
-    console.log('Workout Data:', {
-      dateKey,
-      notes,
-      exercises,
-    });
-    alert('Workout saved! Check console.');
+
+    setloading(true);
+
+    try {
+      const createWorkoutPayload = {
+        dateKey,
+        notes,
+        exercises,
+        dateUTC: new Date(dateKey).toISOString(),
+      };
+      console.log('Workout payload:', createWorkoutPayload);
+
+      await handleCreateWorkout(createWorkoutPayload);
+
+      setDateKey(today);
+      setNotes('');
+      setExercises([
+        {
+          name: '',
+          type: 'strength',
+          sets: defaultSet,
+        },
+      ]);
+      setErrors({});
+    } catch (err) {
+      console.error('Failed to create workout:', err);
+    } finally {
+      setloading(false);
+    }
   };
 
   const getError = (path: string) => errors[path];
@@ -200,6 +223,7 @@ export default function WorkoutForm() {
       onSubmit={handleSubmit}
       className="mx-auto w-full max-w-xl space-y-4 rounded-xl bg-white p-4 text-sm shadow-md"
     >
+      {loading && <Loader />}
       <h2 className="text-center text-lg font-bold sm:text-left">
         Add Workout
       </h2>
@@ -250,7 +274,7 @@ export default function WorkoutForm() {
               type="button"
               onClick={() => deleteExercise(idx)}
               disabled={exercises.length === 1}
-              className={`p-2 absolute right-2 top-0 text-xs transition-opacity duration-200 ${exercises.length === 1 ? 'cursor-not-allowed text-gray-400 opacity-0' : 'text-primary opacity-0 hover:bg-secondary/90 group-hover:opacity-100'}`}
+              className={`absolute right-2 top-0 p-2 text-xs transition-opacity duration-200 ${exercises.length === 1 ? 'cursor-not-allowed text-gray-400 opacity-0' : 'text-primary opacity-0 hover:bg-secondary/90 group-hover:opacity-100'}`}
             >
               <Trash2 size={16} />
             </button>
