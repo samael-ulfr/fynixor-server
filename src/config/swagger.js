@@ -4,9 +4,9 @@ const options = {
   definition: {
     openapi: "3.0.0",
     info: {
-      title: "Fynixor API v1",
+      title: "Vidar API v1",
       version: "1.0.0",
-      description: "API documentation for Fynixor",
+      description: "API documentation for Vidar",
     },
     servers: [
       {

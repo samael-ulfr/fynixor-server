@@ -45,7 +45,7 @@ const noteRoutes = require("./routes/noteRoutes");
 app.use(cookieParser());
 app.use(express.json());
 const options = {
-  customSiteTitle: "Fynixor API v1 Docs",
+  customSiteTitle: "Vidar API v1 Docs",
 };
 // Swagger docs
 app.use("/api/v1/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, options));

@@ -44,9 +44,7 @@ export default function Header() {
     <header className="mb-2 flex w-full items-center justify-between border-b bg-white p-2 shadow-md dark:border-gray-700 dark:bg-gray-900">
       {/* Logo or App Name */}
       {loading && <Loader />}
-      <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-        Fynixor
-      </h1>
+      <h1 className="text-xl font-bold text-gray-900 dark:text-white">Vidar</h1>
       <div className="hidden space-x-6 md:flex">
         {navigationArray.map((item) => (
           <NavLink
